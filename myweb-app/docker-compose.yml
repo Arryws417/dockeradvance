@@ -1,4 +1,5 @@
-version: '3.1'
+version: "3.1"
+
 services:
   db:
     image: mysql:5.7
@@ -6,22 +7,28 @@ services:
       MYSQL_DATABASE: dbkuasai
       MYSQL_USER: cilsykuasaiuser
       MYSQL_PASSWORD: cilsykuasaipassword
-      MYSQL_ROOT_PASSWORD: examplerootpw
+      MYSQL_ROOT_PASSWORD: arryaws123
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: "/etc/init.d/mysql status"
+      interval: 30s
+      retries: 120
     networks:
       - int_net
   pma:
-    image: phpmyadmin/phpmyadmin:4.8.5
+    image: phpmyadmin/phpmyadmin:4.8.3
     depends_on:
       - db
     healthcheck:
       test: curl -f http://localhost/ || exit 1
       timeout: 3s
       interval: 30s
+    ports:
+      - '8080:80'
     networks:
-    - proxy_net
-    - int_net
+      - proxy_net
+      - int_net
   web:
     build:
       context: .
@@ -36,12 +43,13 @@ services:
       context: .
       dockerfile: nginx.Dockerfile
     depends_on:
-      - db
+      - web
+      - pma
     ports:
       - '80:80'
     networks:
-      - ext_net
       - proxy_net
+      - ext_net
 volumes:
   mysql-data:
 networks:
